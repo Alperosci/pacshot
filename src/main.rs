@@ -27,7 +27,7 @@ fn read_lines(path: &str) -> io::Result<Vec<String>> {
 }
 
 fn handle_ps() {
-    let output = Command::new("pacman").arg("-Qqen").output().unwrap();
+    let output = Command::new("pacman").arg("-Qq").output().unwrap();
     let paketler = String::from_utf8_lossy(&output.stdout);
     std::fs::write("pacs.pxs", paketler.as_ref()).unwrap();
 
@@ -42,9 +42,25 @@ fn handle_us() -> io::Result<()> {
         println!("Please enter a valid path ...");
         return Ok(());
     } else {
+        let installed_output = Command::new("pacman").arg("-Qq").output().unwrap();
+        let installed_str = String::from_utf8_lossy(&installed_output.stdout);
+        let installed: Vec<String> = installed_str
+            .lines()
+            .map(|s| s.trim().to_string())
+            .collect();
+
         let lines = read_lines(&inppath)?;
 
         for (i, l) in lines.iter().enumerate() {
+            if installed.contains(l) {
+                print!(
+                    "\r{:?} - {:?} found, skipping ...                              ",
+                    &i, &l
+                );
+                io::stdout().flush().unwrap();
+                continue;
+            }
+
             let status = Command::new("pacman")
                 .arg("--noconfirm")
                 .arg("--needed")
