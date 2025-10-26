@@ -100,7 +100,7 @@ fn main() {
 
     let mut mode: String;
     loop {
-        mode = input("What mode do you want? (Create[1] - Use[2] - Exit[3]) : ");
+        mode = input("What mode do you want? (Create[1] - Use[2] - Exit[3])\n > ");
         println!("");
 
         if mode == "1" {
