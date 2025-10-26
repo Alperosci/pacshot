@@ -35,6 +35,12 @@ fn handle_ps() {
 }
 
 fn handle_us() -> io::Result<()> {
+    let uid = unsafe { libc::getuid() };
+    if uid != 0 {
+        println!("Root needed ...");
+        return Ok(());
+    }
+
     let inppath = input("Enter path : ");
     let path = Path::new(&inppath);
 
@@ -50,6 +56,8 @@ fn handle_us() -> io::Result<()> {
             .collect();
 
         let lines = read_lines(&inppath)?;
+
+        let mut errors = false;
 
         for (i, l) in lines.iter().enumerate() {
             if installed.contains(l) {
@@ -76,8 +84,14 @@ fn handle_us() -> io::Result<()> {
                     (&lines.len() - &i) - 1
                 )
             } else {
-                eprintln!("An error occurred at '{:?}'...", &l)
+                eprintln!("An error occurred at '{:?}'...", &l);
+                errors = true;
             }
+        }
+        if errors {
+            print!("\rSnapshot used with Errors ...                            \n")
+        } else {
+            print!("\rSnapshot used successfully ...                           \n")
         }
     }
     Ok(())
