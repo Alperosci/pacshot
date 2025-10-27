@@ -1,7 +1,7 @@
 # Pacshot - Snapshot Manager
 
 ## Overview
-Pacshot is a simple Rust command-line application that allows users to create a snapshot of installed packages and reinstall them easily on an Linux system using `pacman` or `apt`.
+Pacshot is a simple Rust command-line application that allows users to create a snapshot of installed packages and turn back easily on an Linux system using `pacman` or `apt`.
 
 ## Features
 - Create a snapshot of explicitly installed packages.
