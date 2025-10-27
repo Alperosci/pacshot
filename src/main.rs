@@ -29,7 +29,10 @@ fn read_lines(path: &str) -> io::Result<Vec<String>> {
 fn handle_ps() {
     let output = Command::new("pacman").arg("-Qq").output().unwrap();
     let paketler = String::from_utf8_lossy(&output.stdout);
-    std::fs::write("pacs.pxs", paketler.as_ref()).unwrap();
+
+    let name = input("Enter file name : ");
+
+    std::fs::write(name + ".pxs", paketler.as_ref()).unwrap();
 
     println!("Snapshot saved succesfully!");
 }
