@@ -1,3 +1,4 @@
+use std::fs;
 #[allow(unused_imports)]
 use std::fs::File;
 use std::io::{self, Write, *};
@@ -26,18 +27,29 @@ fn read_lines(path: &str) -> io::Result<Vec<String>> {
     Ok(lines)
 }
 
-fn handle_ps() {
-    let output = Command::new("pacman").arg("-Qq").output().unwrap();
+fn handle_ps(packetm: &str) {
+    let output = if packetm == "pacman" {
+        Command::new("pacman").arg("-Qq").output().unwrap()
+    } else if packetm == "apt" {
+        Command::new("apt")
+            .arg("list")
+            .arg("--installed")
+            .output()
+            .unwrap()
+    } else {
+        panic!("Unsupported ...");
+    };
+
     let paketler = String::from_utf8_lossy(&output.stdout);
 
     let name = input("Enter file name : ");
 
-    std::fs::write(name + ".pxs", paketler.as_ref()).unwrap();
+    std::fs::write(format!("{}.pxs", name), paketler.as_ref()).unwrap();
 
     println!("Snapshot saved succesfully!");
 }
 
-fn handle_us() -> io::Result<()> {
+fn handle_us(packetm: &str) -> io::Result<()> {
     let uid = unsafe { libc::getuid() };
     if uid != 0 {
         println!("Root needed ...");
@@ -51,11 +63,23 @@ fn handle_us() -> io::Result<()> {
         println!("Please enter a valid path ...");
         return Ok(());
     } else {
-        let installed_output = Command::new("pacman").arg("-Qq").output().unwrap();
+        let installed_output = if packetm == "pacman" {
+            Command::new("pacman").arg("-Qq").output().unwrap()
+        } else if packetm == "apt" {
+            Command::new("apt")
+                .arg("list")
+                .arg("--installed")
+                .output()
+                .unwrap()
+        } else {
+            panic!("Unsupported ...");
+        };
+
         let installed_str = String::from_utf8_lossy(&installed_output.stdout);
         let installed: Vec<String> = installed_str
             .lines()
-            .map(|s| s.trim().to_string())
+            .filter(|l| !l.starts_with("Listing"))
+            .map(|s| s.split('/').next().unwrap_or("").trim().to_string())
             .collect();
 
         let lines = read_lines(&inppath)?;
@@ -72,12 +96,22 @@ fn handle_us() -> io::Result<()> {
                 continue;
             }
 
-            let status = Command::new("pacman")
-                .arg("--noconfirm")
-                .arg("--needed")
-                .arg("-S")
-                .arg(l)
-                .status()?;
+            let status = if packetm == "pacman" {
+                Command::new("pacman")
+                    .arg("--noconfirm")
+                    .arg("--needed")
+                    .arg("-S")
+                    .arg(l)
+                    .status()?
+            } else if packetm == "apt" {
+                Command::new("apt")
+                    .arg("install")
+                    .arg("-y")
+                    .arg(l)
+                    .status()?
+            } else {
+                panic!("Unsupported ...");
+            };
 
             if status.success() {
                 println!(
@@ -101,6 +135,16 @@ fn handle_us() -> io::Result<()> {
 }
 
 fn main() {
+    let pmanager: &str;
+    let osrcontent = fs::read_to_string("/etc/os-release").unwrap();
+    if osrcontent.contains("ID=debian") || osrcontent.contains("ID_LIKE=debian") {
+        pmanager = "apt";
+    } else if osrcontent.contains("ID=arch") || osrcontent.contains("ID_LIKE=arch") {
+        pmanager = "pacman";
+    } else {
+        pmanager = "unknown";
+    }
+
     println!(
         r"
         /$$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$  /$$   /$$  /$$$$$$  /$$$$$$$$
@@ -111,7 +155,7 @@ fn main() {
        | $$      | $$  | $$| $$    $$ /$$  \ $$| $$  | $$| $$  | $$   | $$
        | $$      | $$  | $$|  $$$$$$/|  $$$$$$/| $$  | $$|  $$$$$$/   | $$
        |__/      |__/  |__/ \______/  \______/ |__/  |__/ \______/    |__/
-       V-0.2
+       V-0.3
 "
     );
 
@@ -121,9 +165,9 @@ fn main() {
         println!("");
 
         if mode == "1" {
-            handle_ps();
+            handle_ps(&pmanager);
         } else if mode == "2" {
-            let _ = handle_us();
+            let _ = handle_us(&pmanager);
         } else if mode == "3" {
             break;
         } else {
