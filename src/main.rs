@@ -31,14 +31,9 @@ fn handle_ps(packetm: &str) {
     let output = if packetm == "pacman" {
         Command::new("pacman").arg("-Qq").output().unwrap()
     } else if packetm == "apt" {
-        Command::new("apt")
-            .arg("list")
-            .arg("--installed")
-            .arg("-qq")
-            .arg("|")
-            .arg("cut")
-            .arg("-d'/'")
-            .arg("-f1")
+        Command::new("sh")
+            .arg("-c")
+            .arg("apt list --installed -qq | cut -d'/' -f1")
             .output()
             .unwrap()
     } else {
@@ -71,9 +66,9 @@ fn handle_us(packetm: &str) -> io::Result<()> {
         let installed_output = if packetm == "pacman" {
             Command::new("pacman").arg("-Qq").output().unwrap()
         } else if packetm == "apt" {
-            Command::new("apt")
-                .arg("list")
-                .arg("--installed")
+            Command::new("sh")
+                .arg("-c")
+                .arg("apt list --installed -qq | cut -d'/' -f1")
                 .output()
                 .unwrap()
         } else {
