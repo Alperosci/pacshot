@@ -34,6 +34,11 @@ fn handle_ps(packetm: &str) {
         Command::new("apt")
             .arg("list")
             .arg("--installed")
+            .arg("-qq")
+            .arg("|")
+            .arg("cut")
+            .arg("-d'/'")
+            .arg("-f1")
             .output()
             .unwrap()
     } else {
