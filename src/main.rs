@@ -89,7 +89,7 @@ fn handle_us(packetm: &str) -> io::Result<()> {
         for (i, l) in lines.iter().enumerate() {
             if installed.contains(l) {
                 print!(
-                    "\r{:?} - {:?} found, skipping ...                              ",
+                    "\r{:?} - {:?} found, skipping ...                                                                   ",
                     &i, &l
                 );
                 io::stdout().flush().unwrap();
@@ -126,9 +126,13 @@ fn handle_us(packetm: &str) -> io::Result<()> {
             }
         }
         if errors {
-            print!("\rSnapshot used with Errors ...                            \n")
+            print!(
+                "\rSnapshot used with Errors ...                                                                       \n"
+            )
         } else {
-            print!("\rSnapshot used successfully ...                           \n")
+            print!(
+                "\rSnapshot used successfully ...                                                                      \n"
+            )
         }
     }
     Ok(())
